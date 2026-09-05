@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.21.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "open-model-engine"
+version = "0.1.0"
+description = "GPU-first inference harness for vLLM, SGLang, and TensorRT-LLM — deep profiling, optimization, and multi-GPU scaling"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+keywords = ["llm", "inference", "vllm", "sglang", "tensorrt", "gpu", "profiling", "cuda"]
+dependencies = [
+    "openai>=1.40.0",
+    "httpx>=0.24.0",
+    "pynvml>=11.5.0",
+    "rich>=13.0.0",
+    "typer>=0.12.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+cuda = ["nvtx>=0.2.8"]
+cupti = ["cuda-python>=12.0"]
+
+[project.scripts]
+open-model-engine = "open_model_engine.__main__:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/open_model_engine"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
