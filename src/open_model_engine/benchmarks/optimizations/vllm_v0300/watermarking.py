@@ -221,7 +221,9 @@ async def main(args: argparse.Namespace):
     print(f"False positive rate: {results['false_positive_rate']:.1%}")
 
     if not results["watermarked"].get("endpoint_available"):
-        print("\nNote: /v1/watermark/detect endpoint not reachable — start vLLM with --watermark-scheme gumbel")
+        print("\nNote: /v1/watermark/detect endpoint not exposed in this vLLM build.")
+        print("      Detection API may require a separate vLLM build flag or is unavailable")
+        print("      in the NGC container's vLLM version. Watermark generation still working.")
 
     print("\n--- Quality Impact Test ---")
     quality = await test_quality_impact(args.url, args.model)
