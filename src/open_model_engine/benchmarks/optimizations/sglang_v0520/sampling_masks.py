@@ -73,13 +73,14 @@ async def run_rollout_with_mask(
     async with httpx.AsyncClient(timeout=120.0) as client:
         payload = {
             "text": prompt,
+            "return_logprob": True,
+            "return_sampling_mask": True,        # new in v0.5.20 — top-level field
+            "logprob_start_len": 0,
             "sampling_params": {
                 "max_new_tokens": max_tokens,
                 "temperature": temperature,
                 "top_p": top_p,
-                "return_logprob": True,
-                "return_sampling_mask": True,    # new in v0.5.20
-                "logprob_start_len": 0,
+                "top_k": 20,                     # required when return_sampling_mask=True
             },
         }
 
@@ -119,11 +120,12 @@ async def benchmark_mask_overhead(
             t0 = time.perf_counter()
             payload = {
                 "text": "Write a detailed explanation of how neural networks learn.",
+                "return_logprob": True,
+                "return_sampling_mask": return_mask,
                 "sampling_params": {
                     "max_new_tokens": 300,
                     "temperature": 0.8,
-                    "return_logprob": True,
-                    "return_sampling_mask": return_mask,
+                    "top_k": 20,
                 },
             }
             r = await client.post(f"{url}/generate", json=payload)
