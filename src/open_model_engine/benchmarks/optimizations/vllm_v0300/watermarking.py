@@ -59,17 +59,17 @@ async def generate_text(
 ) -> dict:
     """Generate text with or without watermarking."""
     t0 = time.perf_counter()
-    extra = {}
+    kwargs: dict = {}
     if not watermark:
-        # Per-request opt-out (new in v0.30.0)
-        extra["watermark"] = False
+        # Per-request opt-out via extra_body (openai SDK passes these as raw JSON fields)
+        kwargs["extra_body"] = {"watermark": False}
 
     response = await client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=max_tokens,
         temperature=0.8,
-        **extra,
+        **kwargs,
     )
     elapsed_ms = (time.perf_counter() - t0) * 1000
     text = response.choices[0].message.content or ""
@@ -83,18 +83,19 @@ async def generate_text(
 
 async def detect_watermark(url: str, text: str) -> dict:
     """
-    Call the detection endpoint POST /v1/watermark/detect.
-    Returns detection score and verdict.
+    Call the detection endpoint. vLLM v0.30.0 may expose this at different paths.
+    Tries /v1/watermark/detect, then /detect_watermark.
     """
+    candidates = [f"{url}/v1/watermark/detect", f"{url}/detect_watermark"]
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.post(
-                f"{url}/v1/watermark/detect",
-                json={"text": text},
-            )
-            if r.status_code == 200:
-                return r.json()
-            return {"error": f"HTTP {r.status_code}", "detected": None}
+            for endpoint in candidates:
+                r = await client.post(endpoint, json={"text": text})
+                if r.status_code == 200:
+                    return r.json()
+                if r.status_code != 404:
+                    return {"error": f"HTTP {r.status_code}", "detected": None}
+            return {"error": "detection_endpoint_not_found", "detected": None}
     except Exception as e:
         return {"error": str(e), "detected": None}
 
