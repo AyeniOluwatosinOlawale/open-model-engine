@@ -190,9 +190,14 @@ async def run_real_server(
 async def get_hit_rate(url: str) -> float:
     try:
         async with httpx.AsyncClient(timeout=5.0) as c:
-            r = await c.get(f"{url}/get_server_info")
+            r = await c.get(f"{url}/server_info")
             data = r.json()
-            return float(data.get("cache_hit_rate") or data.get("kv_cache_hit_rate") or 0.0)
+            return float(
+                data.get("cache_hit_rate")
+                or data.get("kv_cache_hit_rate")
+                or data.get("token_hit_rate")
+                or 0.0
+            )
     except Exception:
         return 0.0
 
