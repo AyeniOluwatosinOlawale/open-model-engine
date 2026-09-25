@@ -104,13 +104,12 @@ python mrv2_graphs.py \
 Tests watermark generation, detection endpoint, and per-request opt-out.
 
 ```bash
-python -m vllm.entrypoints.openai.api_server \
-  --model Qwen/Qwen3-8B --port 8000 \
-  --watermark-scheme gumbel \
-  --watermark-key "my-secret-key" \
+vllm serve Qwen/Qwen3-8B --port 8000 \
+  --watermark-config '{"algorithm": "gumbel", "key": 42}' \
   --override-generation-config '{"enable_thinking": false}'
 
-python watermarking.py --url http://localhost:8000 --model Qwen/Qwen3-8B
+python -m open_model_engine.benchmarks.optimizations.vllm_v0300.watermarking \
+  --url http://localhost:8000 --model Qwen/Qwen3-8B
 ```
 
 **Expected:** High true positive rate; near-zero false positives; negligible latency overhead.

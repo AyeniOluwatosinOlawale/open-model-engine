@@ -13,11 +13,11 @@ Key properties:
   - Detection endpoint: POST /v1/watermark/detect
 
 Setup:
-  # Start vLLM with watermarking enabled
-  python -m vllm.entrypoints.openai.api_server \\
-    --model <model> --port 8000 \\
-    --watermark-scheme gumbel \\
-    --watermark-key "my-secret-key-2026"
+  # Start vLLM with Gumbel watermarking enabled
+  # Note: v0.30.0 uses --watermark-config JSON; key must be an integer
+  vllm serve <model> --port 8000 \\
+    --watermark-config '{"algorithm": "gumbel", "key": 42}' \\
+    --override-generation-config '{"enable_thinking": false}'
 
 Usage:
   python -m open_model_engine.benchmarks.optimizations.vllm_v0300.watermarking \\
