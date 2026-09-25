@@ -63,10 +63,17 @@ UNIQUE_QUESTIONS = [
 async def get_cache_stats(url: str) -> dict:
     try:
         async with httpx.AsyncClient(timeout=5.0) as c:
-            r = await c.get(f"{url}/get_server_info")
+            # /server_info is the current endpoint; /get_server_info is deprecated
+            r = await c.get(f"{url}/server_info")
             data = r.json()
+            hit_rate = (
+                data.get("cache_hit_rate")
+                or data.get("kv_cache_hit_rate")
+                or data.get("token_hit_rate")
+                or 0.0
+            )
             return {
-                "cache_hit_rate": round(float(data.get("cache_hit_rate") or data.get("kv_cache_hit_rate") or 0), 4),
+                "cache_hit_rate": round(float(hit_rate), 4),
                 "num_cached_tokens": data.get("num_cached_tokens", 0),
                 "num_total_tokens": data.get("num_total_tokens", 0),
             }
@@ -99,7 +106,7 @@ async def run_batch(
             stream = await client.chat.completions.create(
                 model=model,
                 messages=messages,
-                max_tokens=80,
+                max_tokens=1,        # measure prefill (TTFT) only, not decode
                 stream=True,
                 temperature=0.0,
             )
